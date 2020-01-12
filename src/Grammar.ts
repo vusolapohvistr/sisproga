@@ -19,7 +19,7 @@ class Grammar {
         }
     }
 
-    private checkIsKv(): void {
+    private checkIsKv() {
         for (const rule in this._rules) {
             if (rule.length > 1) throw new TypeError('Grammar is not KV');
         }
@@ -35,7 +35,31 @@ class Grammar {
         }
     }
 
-    private canBeEmpty(word: string) {
+    getE_NonTerminals(word: string): Array<string> {
+        this.checkIsKv();
+
+        const result: Set<string> = new Set();
+        for (const nonterminal in this._nonterminals) {
+            for (const output of this._rules[nonterminal]) {
+                if (output === '') result.add(nonterminal);
+            }
+        }
+
+        let previousLength = 0;
+
+        while (previousLength !== result.size) {
+            previousLength = result.size;
+            for (const rule in this._rules) {
+                for (const output of this._rules[rule]) {
+                    if (rule.split('').filter(letter => output.includes(letter)).length === 0) {}
+                }
+            }
+        }
+
+        return Array.from(result);
+    }
+
+    canDevireToE (): boolean {
 
     }
 
