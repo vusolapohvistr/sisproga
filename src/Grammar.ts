@@ -3,7 +3,7 @@ import { Rules } from "./Rules";
 class Grammar {
     private readonly _rules: Rules;
     private _terminals: {[key: string]: boolean} = {};
-    private _nonterminals: {[key: string]: boolean} = {};
+    private readonly _nonterminals: {[key: string]: boolean} = {};
 
     private updateAlphabet (word: string): void {
         for (const letter of word) {
@@ -61,7 +61,26 @@ class Grammar {
 
     private canDevireToEmptyWord (word: string, eNonTerminals?: Array<string>): boolean {
         eNonTerminals = eNonTerminals || this.getEmptyNonTerminals();
-        return word.split('').filter(letter => !eNonTerminals?.includes(letter)).length === 0;
+        return word.length === 0 || word.split('').filter(letter => !eNonTerminals?.includes(letter)).length === 0;
+    }
+
+    private getNonTerminalsCanBeLeft(nonterminal: string, eNonTerminals?: Array<string>): Set<string> {
+        const state: Set<string> = new Set();
+        for (const outPut of this._rules[nonterminal]) {
+            const endOfNonTerminalSubWord = outPut.search(/[a-z]/);
+            if (endOfNonTerminalSubWord !== 0) {
+                let subWord = endOfNonTerminalSubWord === -1 ? outPut : outPut.slice(0, endOfNonTerminalSubWord);
+                while (subWord.length > 0) {
+                    const beforeLastNonTerminal = subWord.slice(0, -1);
+                    // console.log(beforeLastNonTerminal);
+                    if (this.canDevireToEmptyWord(beforeLastNonTerminal, eNonTerminals)) {
+                        state.add(subWord[subWord.length - 1]);
+                    }
+                    subWord = beforeLastNonTerminal;
+                }
+            }
+        }
+        return state;
     }
 
     leftRecTest(): Array<string> {
@@ -70,11 +89,68 @@ class Grammar {
         const eNonTerminals = this.getEmptyNonTerminals();
 
         for (const nonterminal in this._nonterminals) {
-            for (const outPut of this._rules[nonterminal]) {
-                if (outPut.indexOf(nonterminal) === 0
-                    || (outPut.includes(nonterminal)
-                    && this.canDevireToEmptyWord(outPut.slice(0, outPut.indexOf(nonterminal)), eNonTerminals)))
-                    result.push(nonterminal);
+            const state: Set<string> = this.getNonTerminalsCanBeLeft(nonterminal);
+            // console.log('first non terminals that can be left for', nonterminal, '//', state);
+            let previousStateSize = -1;
+
+            while (state.size !== previousStateSize) {
+                previousStateSize = state.size;
+                for (const stateNonTerminal of state) {
+                    this.getNonTerminalsCanBeLeft(stateNonTerminal, eNonTerminals).forEach(el => state.add(el));
+                }
+                // console.log('next non terminals', state);
+            }
+
+            if (state.has(nonterminal)) {
+                result.push(nonterminal);
+                // console.log('adding ', nonterminal);
+            }
+        }
+
+        return result;
+    }
+
+    private getNonTerminalsCanBeRight(nonterminal: string, eNonTerminals?: Array<string>): Set<string> {
+        const state: Set<string> = new Set();
+        for (const outPut of this._rules[nonterminal]) {
+            const startOfLastNonTerminalSubWord = outPut.search(/[A-Z]+$/);
+            if (startOfLastNonTerminalSubWord !== -1) {
+                let subWord = outPut.slice(startOfLastNonTerminalSubWord);
+                while (subWord.length > 0) {
+                    const afterLastNonTerminal = subWord.slice(1);
+                    // console.log(afterLastNonTerminal);
+                    if (this.canDevireToEmptyWord(afterLastNonTerminal, eNonTerminals)) {
+                        state.add(subWord[0]);
+                    }
+                    subWord = afterLastNonTerminal;
+                }
+            }
+        }
+        return state;
+    }
+
+    rightRecTest(): Array<string> {
+        const result: Array<string> = [];
+        this.checkIsKv();
+        const eNonTerminals = this.getEmptyNonTerminals();
+        console.log(eNonTerminals);
+
+        for (const nonterminal in this._nonterminals) {
+            const state: Set<string> = this.getNonTerminalsCanBeRight(nonterminal);
+            // console.log('first non terminals that can be right for', nonterminal, '//', state);
+            let previousStateSize = -1;
+
+            while (state.size !== previousStateSize) {
+                previousStateSize = state.size;
+                for (const stateNonTerminal of state) {
+                    this.getNonTerminalsCanBeRight(stateNonTerminal, eNonTerminals).forEach(el => state.add(el));
+                }
+                // console.log('next non terminals', state);
+            }
+
+            if (state.has(nonterminal)) {
+                result.push(nonterminal);
+                // console.log('adding ', nonterminal);
             }
         }
 

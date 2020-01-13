@@ -1,6 +1,6 @@
-A->a|
-B->b|aA|AB
-C->c|
-D->L
-L->l|
-A->b
+S->BaA|BYXA
+B->XAAX|abB
+X->abX|
+A->BAbSX|
+C->XABX|abXA
+Y->BAXB|abXA

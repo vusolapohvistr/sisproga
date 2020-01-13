@@ -22,5 +22,5 @@ console.log(fileName);
 
 getRulesLines(fileName).then(lines => {
     const grammar = new Grammar(makeRules(lines));
-    console.log(grammar.leftRecTest());
+    console.log(grammar.rightRecTest());
 });
