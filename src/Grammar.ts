@@ -1,5 +1,10 @@
 import { Rules } from "./Rules";
 
+interface FirstK {
+    [key: string]: Array<string>;
+}
+
+
 class Grammar {
     private readonly _rules: Rules;
     private _terminals: {[key: string]: boolean} = {};
@@ -154,6 +159,38 @@ class Grammar {
             }
         }
 
+        return result;
+    }
+
+    plusK(l1: Set<string>, l2: Set<string>, k: number): Set<string> {
+        const result = new Set();
+        for (const x of l1) {
+            for (const y of l2) {
+                result.add((x + y).slice(0, k));
+            }
+        }
+    }
+
+    fK(k: number, letter: string, currentIndex: number): Set<string> {
+        if (this._terminals.hasOwnProperty(letter)) {
+            return new Set([letter]);
+        }
+        let result: Set<string> = new Set();
+
+
+    }
+
+    firstK(k: number, letter: string): Set<string> {
+        if (this._terminals.hasOwnProperty(letter)) {
+            return new Set([letter]);
+        }
+        let result: Set<string> = new Set();
+        for (const output of this._rules[letter]) {
+            const first = output.slice(0, k);
+            if (first.toLowerCase() === first) {
+                result.add(first);
+            }
+        }
         return result;
     }
 }
