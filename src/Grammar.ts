@@ -4,6 +4,16 @@ interface KTable {
     [key: string]: Array<Set<string>>;
 }
 
+interface ControlTable {
+    [key: string]: {
+        [key: string]: number
+    }
+}
+
+interface PureRule {
+    [key: string]: string;
+}
+
 class Grammar {
     private readonly _rules: Rules;
     private _terminals: {[key: string]: boolean} = {};
@@ -137,7 +147,7 @@ class Grammar {
         const result: Array<string> = [];
         this.checkIsKv();
         const eNonTerminals = this.getEmptyNonTerminals();
-        console.log(eNonTerminals);
+       // console.log(eNonTerminals);
 
         for (const nonterminal in this._nonterminals) {
             const state: Set<string> = this.getNonTerminalsCanBeRight(nonterminal);
@@ -263,7 +273,7 @@ class Grammar {
         let changed = true;
         let currentIndex = 2;
 
-        console.log(table);
+     //   console.log(table);
 
         while (changed) {
             changed = false;
@@ -290,6 +300,46 @@ class Grammar {
         }
 
         return table;
+    }
+    
+    constructControlTable(): ControlTable {
+        this.checkIsKv();
+
+        const pureRules: Array<PureRule> = [];
+        for (const input in this._rules) {
+            for (const output of this._rules[input]) {
+                pureRules.push({[input]: output});
+            }
+        }
+
+        console.log(pureRules);
+
+        const firstAndFollow: Array<Set<string>> = [];
+
+        const firstKTable: KTable = this.constructFirstKTable(1);
+        const followKTable: KTable = this.constructFollowKTable(1);
+
+        for (const rule of pureRules) {
+            const w = Object.values(rule)[0];
+            const followValue: Set<string> = followKTable[Object.keys(rule)[0]][followKTable[Object.keys(rule)[0]].length - 1];
+            firstAndFollow.push(this.plusK(this.getFirstKForWord(w, firstKTable, 1), followValue, 1));
+        }
+
+        console.log(firstAndFollow);
+
+        const result: ControlTable = {};
+
+        for (let i = 0; i < pureRules.length; i++) {
+            const nonterminal = Object.keys(pureRules[i])[0];
+            if (!result.hasOwnProperty(nonterminal)) {
+                result[nonterminal] = {};
+            }
+            for (const terminal of firstAndFollow[i]) {
+                result[nonterminal][terminal] = i + 1;
+            }
+        }
+
+        return result;
     }
 }
 
