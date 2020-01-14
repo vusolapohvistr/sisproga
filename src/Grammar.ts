@@ -1,9 +1,8 @@
 import { Rules } from "./Rules";
 
-interface FirstK {
-    [key: string]: Array<string>;
+interface FirstKTable {
+    [key: string]: Array<Set<string>>;
 }
-
 
 class Grammar {
     private readonly _rules: Rules;
@@ -14,10 +13,10 @@ class Grammar {
         for (const letter of word) {
             if (!isNaN(+letter)) throw new TypeError('Numbers doesn\'t allowed');
             if (letter === letter.toUpperCase()) {
-                this._nonterminals[letter] = false;
+                this._nonterminals[letter] = true;
             }
             if (letter === letter.toLowerCase()) {
-                this._terminals[letter] = false;
+                this._terminals[letter] = true;
             }
         }
     }
@@ -163,35 +162,67 @@ class Grammar {
     }
 
     plusK(l1: Set<string>, l2: Set<string>, k: number): Set<string> {
-        const result = new Set();
-        for (const x of l1) {
-            for (const y of l2) {
-                result.add((x + y).slice(0, k));
-            }
-        }
-    }
-
-    fK(k: number, letter: string, currentIndex: number): Set<string> {
-        if (this._terminals.hasOwnProperty(letter)) {
-            return new Set([letter]);
-        }
-        let result: Set<string> = new Set();
-
-
-    }
-
-    firstK(k: number, letter: string): Set<string> {
-        if (this._terminals.hasOwnProperty(letter)) {
-            return new Set([letter]);
-        }
-        let result: Set<string> = new Set();
-        for (const output of this._rules[letter]) {
-            const first = output.slice(0, k);
-            if (first.toLowerCase() === first) {
-                result.add(first);
+        const result: Set<string> = new Set();
+        if (l1.size === 0) {
+            l2.forEach(y => result.add(y.slice(0, k)));
+        } else {
+            if (l2.size === 0) {
+                l1.forEach(x => result.add(x.slice(0, k)));
+            } else {
+                for (const x of l1) {
+                    for (const y of l2) {
+                        result.add((x + y).slice(0, k));
+                    }
+                }
             }
         }
         return result;
+    }
+
+    constructFirstKTable(k: number): FirstKTable {
+        this.checkIsKv();
+
+        const table: FirstKTable = Object.keys(this._nonterminals)
+            .reduce((acc: FirstKTable, key) => acc = {...acc, [key]: []}, {});
+        let changed = true;
+
+        for (const nonterminal in this._nonterminals) {
+            table[nonterminal][0] = new Set();
+            for (const rule of this._rules[nonterminal]) {
+                const first = rule.slice(0, k);
+                if (first === first.toLowerCase()) {
+                    table[nonterminal][0].add(first);
+                }
+            }
+        }
+
+        let currentIndex = 1;
+
+        while (changed) {
+            changed = false;
+            for (const nonterminal in table) {
+                table[nonterminal][currentIndex] = new Set(table[nonterminal][currentIndex - 1]);
+                for (const rule of this._rules[nonterminal]) {
+                    let tempResult: Set<string> = new Set();
+                    let identified = true;
+                    for (const letter of rule) {
+                        if (this._terminals[letter]) {
+                            tempResult.add(letter);
+                        } else {
+                            if (table[letter][currentIndex - 1].size === 0) identified = false;
+                            tempResult = this.plusK(tempResult, table[letter][currentIndex - 1], k);
+                        }
+                    }
+                    identified && tempResult.forEach(el => table[nonterminal][currentIndex].add(el));
+                }
+                if (!changed) {
+                    changed = table[nonterminal][currentIndex].size !== table[nonterminal][currentIndex - 1].size;
+                }
+            }
+            currentIndex++;
+        }
+
+        return table;
     }
 }
 

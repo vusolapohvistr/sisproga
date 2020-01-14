@@ -22,5 +22,5 @@ console.log(fileName);
 
 getRulesLines(fileName).then(lines => {
     const grammar = new Grammar(makeRules(lines));
-    console.log(grammar.rightRecTest());
+    console.log(grammar.constructFirstKTable(2));
 });

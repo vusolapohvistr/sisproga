@@ -1,6 +1,5 @@
-S->BaA|BYXA
-B->XAAX|abB
-X->abX|
-A->BAbSX|
-C->XABX|abXA
-Y->BAXB|abXA
+S->BA
+A->pBA|
+B->DC
+C->zDC|
+D->lSr|a
