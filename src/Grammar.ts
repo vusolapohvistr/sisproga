@@ -1,6 +1,6 @@
 import { Rules } from "./Rules";
 
-interface FirstKTable {
+interface KTable {
     [key: string]: Array<Set<string>>;
 }
 
@@ -179,11 +179,11 @@ class Grammar {
         return result;
     }
 
-    constructFirstKTable(k: number): FirstKTable {
+    constructFirstKTable(k: number): KTable {
         this.checkIsKv();
 
-        const table: FirstKTable = Object.keys(this._nonterminals)
-            .reduce((acc: FirstKTable, key) => acc = {...acc, [key]: []}, {});
+        const table: KTable = Object.keys(this._nonterminals)
+            .reduce((acc: KTable, key) => acc = {...acc, [key]: []}, {});
         let changed = true;
 
         for (const nonterminal in this._nonterminals) {
@@ -207,13 +207,80 @@ class Grammar {
                     let identified = true;
                     for (const letter of rule) {
                         if (this._terminals[letter]) {
-                            tempResult.add(letter);
+                            tempResult = this.plusK(tempResult, new Set(letter), k);
                         } else {
                             if (table[letter][currentIndex - 1].size === 0) identified = false;
                             tempResult = this.plusK(tempResult, table[letter][currentIndex - 1], k);
                         }
                     }
                     identified && tempResult.forEach(el => table[nonterminal][currentIndex].add(el));
+                }
+                if (!changed) {
+                    changed = table[nonterminal][currentIndex].size !== table[nonterminal][currentIndex - 1].size;
+                }
+            }
+            currentIndex++;
+        }
+
+        return table;
+    }
+
+    getFirstKForWord(word: string, firstKTable: KTable, k: number) {
+        let result: Set<string> = new Set();
+        if (word === '') return new Set(['']);
+        for (const letter of word) {
+            if (letter.toLowerCase() === letter) {
+                result = this.plusK(result, new Set([letter]), k);
+            } else {
+                result = this.plusK(result, firstKTable[letter][firstKTable[letter].length - 1], k);
+            }
+        }
+        return result;
+    }
+
+    constructFollowKTable(k: number): KTable {
+        this.checkIsKv();
+
+        const table: KTable = Object.keys(this._nonterminals)
+            .reduce((acc: KTable, key) => acc = {...acc, [key]: []}, {});
+        const firstKTable: KTable = this.constructFirstKTable(k);
+
+        for (const nonterminal in table) {
+            table[nonterminal][0] = nonterminal === 'S' ? new Set(['']) : new Set();
+        }
+
+        for (const nonterminal in table) {
+            table[nonterminal][1] = new Set(table[nonterminal][0]);
+            for (const rule of this._rules['S']) {
+                const indexOfNonTerminal = rule.length === 0 ? -1 : rule.indexOf(nonterminal);
+                if (indexOfNonTerminal !== -1) {
+                    const w2 = rule.slice(indexOfNonTerminal + 1);
+                    table[nonterminal][1] = this.getFirstKForWord(w2, firstKTable, k);
+                }
+            }
+        }
+
+        let changed = true;
+        let currentIndex = 2;
+
+        console.log(table);
+
+        while (changed) {
+            changed = false;
+            for (const nonterminal in table) {
+                table[nonterminal][currentIndex] = new Set(table[nonterminal][currentIndex - 1]);
+                for (const input in this._rules) {
+                    for (const output of this._rules[input]) {
+                        const indexOfNonTerminal = output.indexOf(nonterminal);
+                        if (indexOfNonTerminal !== -1) {
+                            const w2 = output.slice(indexOfNonTerminal + 1);
+                            const firstK: Set<string> = new Set();
+                                table[input][currentIndex - 1]
+                                    .forEach(word => this.getFirstKForWord(w2 + word, firstKTable, k)
+                                        .forEach(result => firstK.add(result)));
+                            firstK.forEach(el => table[nonterminal][currentIndex].add(el));
+                        }
+                    }
                 }
                 if (!changed) {
                     changed = table[nonterminal][currentIndex].size !== table[nonterminal][currentIndex - 1].size;
