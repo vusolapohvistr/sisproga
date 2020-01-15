@@ -16,7 +16,7 @@ class StateMachine {
         return this._finalStates.includes(this._currentState);
     }
 
-    private minimize() {
+    minimize() {
         this.removeUntouchableStates();
         this.removeDeadEndStates();
         this.removeEqualStates();

@@ -1,5 +1,3 @@
-S->BA
-A->pBA|
-B->DC
-C->zDC|
-D->lSr|a
+S->abA
+A->Baa|
+B->SaB|b
