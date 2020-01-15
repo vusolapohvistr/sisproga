@@ -198,6 +198,7 @@ class Grammar {
 
         for (const nonterminal in this._nonterminals) {
             table[nonterminal][0] = new Set();
+            if (!this._rules.hasOwnProperty(nonterminal)) continue;
             for (const rule of this._rules[nonterminal]) {
                 const first = rule.slice(0, k);
                 if (first === first.toLowerCase()) {
@@ -211,6 +212,7 @@ class Grammar {
         while (changed) {
             changed = false;
             for (const nonterminal in table) {
+                if (!this._rules.hasOwnProperty(nonterminal)) continue;
                 table[nonterminal][currentIndex] = new Set(table[nonterminal][currentIndex - 1]);
                 for (const rule of this._rules[nonterminal]) {
                     let tempResult: Set<string> = new Set();
@@ -219,7 +221,10 @@ class Grammar {
                         if (this._terminals[letter]) {
                             tempResult = this.plusK(tempResult, new Set(letter), k);
                         } else {
-                            if (table[letter][currentIndex - 1].size === 0) identified = false;
+                            if (table[letter][currentIndex - 1] === undefined || table[letter][currentIndex - 1].size === 0) {
+                                identified = false;
+                                continue;
+                            }
                             tempResult = this.plusK(tempResult, table[letter][currentIndex - 1], k);
                         }
                     }
@@ -301,7 +306,7 @@ class Grammar {
 
         return table;
     }
-    
+
     constructControlTable(): ControlTable {
         this.checkIsKv();
 

@@ -22,5 +22,33 @@ console.log(fileName);
 
 getRulesLines(fileName).then(lines => {
     const grammar = new Grammar(makeRules(lines));
-    console.log(grammar.constructControlTable());
+    console.log(process.argv);
+    if (process.argv.includes('first-1')) {
+        console.log('first-1');
+        console.log(grammar.constructFirstKTable(1));
+    }
+    if (process.argv.includes('first-2')) {
+        console.log('first-2');
+        console.log(grammar.constructFirstKTable(2));
+    }
+    if (process.argv.includes('follow-1')) {
+        console.log('follow-1');
+        console.log(grammar.constructFollowKTable(1));
+    }
+    if (process.argv.includes('follow-2')) {
+        console.log('follow-2');
+        console.log(grammar.constructFollowKTable(2));
+    }
+    if (process.argv.includes('empty')) {
+        console.log('empty');
+        console.log(grammar.getEmptyNonTerminals());
+    }
+    if (process.argv.includes('left-rec')) {
+        console.log('left-rec');
+        console.log(grammar.leftRecTest());
+    }
+    if (process.argv.includes('right-rec')) {
+        console.log('right-rec');
+        console.log(grammar.rightRecTest());
+    }
 });
