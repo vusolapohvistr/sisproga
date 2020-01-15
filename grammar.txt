@@ -1,4 +1,3 @@
-S->AbC
-A->DbC
-C->Sa|
-D->aB|
+S->abA
+B->SaB|b
+A->Baa|

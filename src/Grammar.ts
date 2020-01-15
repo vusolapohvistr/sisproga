@@ -212,8 +212,8 @@ class Grammar {
         while (changed) {
             changed = false;
             for (const nonterminal in table) {
-                if (!this._rules.hasOwnProperty(nonterminal)) continue;
                 table[nonterminal][currentIndex] = new Set(table[nonterminal][currentIndex - 1]);
+                if (!this._rules.hasOwnProperty(nonterminal)) continue;
                 for (const rule of this._rules[nonterminal]) {
                     let tempResult: Set<string> = new Set();
                     let identified = true;
@@ -221,9 +221,12 @@ class Grammar {
                         if (this._terminals[letter]) {
                             tempResult = this.plusK(tempResult, new Set(letter), k);
                         } else {
-                            if (table[letter][currentIndex - 1] === undefined || table[letter][currentIndex - 1].size === 0) {
+                            if (table[letter][currentIndex - 1] === undefined) {
                                 identified = false;
                                 continue;
+                            }
+                            if (table[letter][currentIndex - 1].size === 0) {
+                                identified = false;
                             }
                             tempResult = this.plusK(tempResult, table[letter][currentIndex - 1], k);
                         }
