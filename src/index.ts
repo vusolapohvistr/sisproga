@@ -51,4 +51,8 @@ getRulesLines(fileName).then(lines => {
         console.log('right-rec');
         console.log(grammar.rightRecTest());
     }
+    if (process.argv.includes('control-table')) {
+        console.log('control-table');
+        console.log(grammar.constructControlTable());
+    }
 });

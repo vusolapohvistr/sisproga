@@ -21,3 +21,5 @@ options:
 `left-rec`
 
 `right-rec`
+
+`control-table`
